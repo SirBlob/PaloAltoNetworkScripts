@@ -1,3 +1,7 @@
+### Script to grab the Egress IP Address from your Palo Instance
+### Parameters can be changed to your preference
+### For More Information - https://docs.paloaltonetworks.com/prisma/prisma-access/3-2/prisma-access-panorama-admin/prisma-access-overview/retrieve-ip-addresses-for-prisma-access
+
 import requests
 import json
 
