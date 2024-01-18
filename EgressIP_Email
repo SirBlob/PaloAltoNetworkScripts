@@ -4,7 +4,6 @@ import json
 import re
 from envelope import Envelope
 from datetime import datetime
-from pathlib import Path
  
 API_URL = "https://api.prod.datapath.prismaaccess.com/getPrismaAccessIP/v2"
 API_KEY = "#ADD YOUR OWN API KEY"
