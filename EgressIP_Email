@@ -1,0 +1,71 @@
+#!/usr/bin/python
+import requests
+import json
+import re
+from envelope import Envelope
+from datetime import datetime
+from pathlib import Path
+ 
+API_URL = "https://api.prod.datapath.prismaaccess.com/getPrismaAccessIP/v2"
+API_KEY = "#ADD YOUR OWN API KEY"
+HEADERS = {"header-api-key": API_KEY}
+PARAMETERS = {"serviceType": "all", "addrType": "all", "location": "all"}
+ 
+IP_REGEX = r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b(?!\/)"
+CURRENT_LIST = []
+
+def fetch_and_compare_ips():
+    """Fetches IPs from the API, compares them to a current list, and reports missing IPs."""
+ 
+    try:
+        response = requests.post(API_URL, headers=HEADERS, data=json.dumps(PARAMETERS).encode())
+        response.raise_for_status()
+        json_data = response.json()
+ 
+        ips_from_api = set(re.findall(IP_REGEX, str(json_data)))
+        current_ips = set(CURRENT_LIST)
+ 
+        missing_ips = ips_from_api - current_ips
+ 
+        if missing_ips:
+            return(missing_ips)
+        else:
+            print("All IPs are in the current list")
+           
+    except requests.exceptions.RequestException as err:
+        print("Request failed:", err)
+       
+ 
+if __name__ == "__main__":
+    if not fetch_and_compare_ips():
+        print("This script is working.")
+    else:
+        SENDER_EMAIL = "PaloEgressIPScript"
+        TO_EMAIL = "#ADD YOUR OWN EMAIL"
+        Date_Time = (datetime.today().strftime('%A, %B %d %Y'))
+        SUBJECT = f"Palo Egress Missing IP - {Date_Time}"
+        BODY = f"""
+        Hi All,
+       
+        A new IP has been detected and it is not in your current list of Palo Alto Networks.
+        Please remember to update the current list once verified.
+       
+        New IP
+        =========
+        {fetch_and_compare_ips()}
+       
+        Current IPs
+        ===========
+        {CURRENT_LIST}
+       
+        Thanks,
+        """
+       
+        Envelope()\
+            .sender(SENDER_EMAIL)\
+            .subject(SUBJECT)\
+            .to(TO_EMAIL)\
+            .message(BODY)\
+            .smtp("#ADD YOUR OWN", 25)\
+            .send()
+   
